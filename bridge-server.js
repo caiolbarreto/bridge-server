@@ -17,7 +17,7 @@ app.post('/send-to-esps', async (req, res) => {
 });
 
 // Testing route
-app.post('/testing', async (_req, res) => {
+app.get('/testing', async (_req, res) => {
     try {
       res.status(200).send('Server is running');
     } catch (error) {
