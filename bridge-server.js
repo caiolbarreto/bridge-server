@@ -30,9 +30,7 @@ app.get('/testing', async (_req, res) => {
 async function sendToESPs(data) {
   // Assuming you have 6 ESPs running locally with different URLs
   const espURLs = [
-    'http://localhost:8001',
-    'http://localhost:8002',
-    // Add URLs for other ESPs here
+    'http://192.168.1.100:8001/auth'
   ];
 
   // Send request to each ESP asynchronously
