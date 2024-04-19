@@ -16,6 +16,16 @@ app.post('/send-to-esps', async (req, res) => {
   }
 });
 
+// Testing route
+app.post('/testing', async (_req, res) => {
+    try {
+      res.status(200).send('Server is running');
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal server error.');
+    }
+  });
+
 // Function to send request to ESPs
 async function sendToESPs(data) {
   // Assuming you have 6 ESPs running locally with different URLs
