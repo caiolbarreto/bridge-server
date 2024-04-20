@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const FormData = require('form-data');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -49,23 +50,36 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
 async function fetchImageFromESP(state) {
   try {
     // Loop through ESP URLs
-    const requests = espCamURLs.map(url => axios.get(`${url}/${state}`)
-      .then(async (response) => {
+    const requests = espCamURLs.map(async url => {
+      try {
+        // Fetch image binary data
+        const response = await axios.get(`${url}/${state}`, {
+          responseType: 'arraybuffer' // Ensure binary data is correctly received
+        });
+
         // Extract the file name from the response headers
-        const fileName = await axios.get(`${url}/filename-${state}`)
-        const parsedName = addRandomNumber(String(fileName))
+        const fileNameResponse = await axios.get(`${url}/filename-${state}`);
+        const fileName = addRandomNumber(String(fileNameResponse.data));
+
+        // Create FormData object and append image data with filename
         const form = new FormData();
-        form.append(parsedName, response.data);
+        form.append('file', response.data, { filename: fileName });
 
         // Send the image to the server with the extracted file name
-        console.log('parsedName', parsedName)
-        console.log('form', form)
-        axios.post(serverUrl, form)
-      })
-      .catch(error => {
+        console.log('fileName:', fileName);
+        console.log('form:', form);
+
+        await axios.post(serverUrl, form, {
+          headers: {
+            ...form.getHeaders() // Set proper headers for FormData
+          }
+        });
+      } catch (error) {
         console.error(`Error sending request to ${url}:`, error);
         throw error; // Re-throw the error for handling in the catch block
-      }));
+      }
+    });
+
     await Promise.all(requests);
   } catch (error) {
     console.error('Error fetching image from ESP:', error);
