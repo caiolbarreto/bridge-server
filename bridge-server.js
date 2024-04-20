@@ -8,11 +8,12 @@ const PORT = process.env.PORT || 3001;
 app.post('/send-to-esps', async (req, res) => {
   try {
     // Forward the request to ESPs
-    await sendToESPs(req.body);
+    console.log('testing here', req.body)
+    await sendToESPs(JSON.stringify(req.body));
     res.status(200).send('Request forwarded to ESPs successfully.');
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
-    res.status(500).send(`Internal server error. ${req.body}`);
+    res.status(500).send(`Internal server error. ${JSON.stringify(req)}`);
   }
 });
 
@@ -29,12 +30,12 @@ app.get('/testing', async (_req, res) => {
 // Testing route
 app.get('/posts', async (_req, res) => {
   try {
-    const axiosResponse = await axios.get('http://localhost:3000/posts');
+    const axiosResponse = await axios.get('http://172.20.10.2:3000/posts');
     // Send the data property of the axios response as the response to the client
     res.status(200).json(axiosResponse.data);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal server error.');
+    res.status(500).send(`Internal server error. ${JSON.stringify(req)}`);
   }
 });
 
