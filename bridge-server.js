@@ -1,5 +1,7 @@
 const express = require('express');
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,6 +13,7 @@ const espCamURLs = [
 
 const esp32URL = 'http://192.168.131.102:8001'
 
+const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 
 // Define routes
 app.post('/send-to-esps/:clientID', async (req, res) => {
@@ -20,6 +23,7 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     await sendToESPs(req.params);
     res.status(200).send('Request forwarded to ESPs successfully.');
     await fetchImageFromESP()
+    await handleOpenDoor()
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
     res.status(500).send('Internal server error.');
@@ -33,17 +37,26 @@ async function fetchImageFromESP(state) {
 
     // Loop through ESP URLs
     const requests = espCamURLs.map(url => axios.get(`${url}/${state}`)
-      .then((response) => {
-        imageArray.push(response.data)
+      .then(async (response) => {
+        // Extract the file name from the response headers
+        const contentDisposition = response.headers['content-disposition'];
+        const fileName = contentDisposition.split('filename=')[1].trim();
+
+        // Send the image to the server with the extracted file name
+        await axios.post(serverUrl, response.data, {
+          headers: {
+            'Content-Type': 'image/jpeg', // Assuming the content type is JPEG, change if different
+            'Content-Disposition': `attachment; filename="${fileName}"` // Set the file name in the request headers
+          }
+        });
       })
       .catch(error => {
         console.error(`Error sending request to ${url}:`, error);
         throw error; // Re-throw the error for handling in the catch block
       }));
     await Promise.all(requests);
-    await handleOpenDoor()
   } catch (error) {
-    console.error(`Error fetching image from ${url}:`, error);
+    console.error('Error fetching image from ESP:', error);
     return null; // Return null if there's an error
   }
 }
