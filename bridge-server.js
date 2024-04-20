@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3001;
 const espCamURLs = [
   `http://192.168.131.101:8001`,
   `http://192.168.131.102:8001`,
+  `http://192.168.131.103:8001`,
 ];
 
 const esp32URL = 'http://192.168.131.100:8001'
@@ -52,7 +53,7 @@ async function fetchImageFromESP(state) {
       .then(async (response) => {
         // Extract the file name from the response headers
         const fileName = await axios.get(`${url}/filename-${state}`)
-        const parsedName = addRandomNumber(fileName)
+        const parsedName = addRandomNumber(String(fileName))
         const form = new FormData();
         form.append(parsedName, response.data);
 
