@@ -32,18 +32,16 @@ async function fetchImageFromESP(url) {
     const imageArray = [];
 
     // Loop through ESP URLs
-    for (const url of espCamURLs) {
-      // Set up interval for each URL
-      setInterval(async () => {
-        const response = await axios.get(`${url}/before`);
-        if (response.data !== null) {
-          imageArray.push(response.data);
-        }
-      }, 1000);
-
-      // Execute handleOpenDoor function once for each URL
-      await handleOpenDoor();
-    }
+    const requests = espCamURLs.map(url => axios.get(`${url}/before`)
+      .then((response) => {
+        imageArray.push(response.data)
+      })
+      .catch(error => {
+        console.error(`Error sending request to ${url}:`, error);
+        throw error; // Re-throw the error for handling in the catch block
+      }));
+    await Promise.all(requests);
+    await handleOpenDoor()
   } catch (error) {
     console.error(`Error fetching image from ${url}:`, error);
     return null; // Return null if there's an error
