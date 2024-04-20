@@ -1,17 +1,15 @@
 const express = require('express');
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 const espCamURLs = [
   `http://192.168.131.101:8001`,
-  `http://192.168.131.100:8002`,
+  `http://192.168.131.102:8001`,
 ];
 
-const esp32URL = 'http://192.168.131.102:8001'
+const esp32URL = 'http://192.168.131.100:8001'
 
 const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 
