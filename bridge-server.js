@@ -36,7 +36,7 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     // Process images before and after opening the door for each ESP
     await Promise.all(espCamURLs.map(async esp => {
       await fetchImageFromESP(esp.url, 'before', esp.randomNumber);
-      await handleOpenDoor(esp.randomNumber);
+      await handleOpenDoor(esp.url, esp.randomNumber);
     }));
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
@@ -72,7 +72,7 @@ async function fetchImageFromESP(url, state, randomNumber) {
   }
 }
 
-async function handleOpenDoor(randomNumber) {
+async function handleOpenDoor(url, randomNumber) {
   try {
     const response = await axios.get(`${esp32URL}/open`);
     await monitorDoor(randomNumber);
@@ -82,14 +82,12 @@ async function handleOpenDoor(randomNumber) {
   }
 }
 
-async function monitorDoor(randomNumber) {
+async function monitorDoor(url, randomNumber) {
   try {
     while (true) {
       const response = await axios.get(`${esp32URL}/closed`);
       if (response.data === "Porta fechada!") {
-        await Promise.all(espCamURLs.map(async esp => {
-          await fetchImageFromESP(esp.url, 'after', randomNumber);
-        }));
+          await fetchImageFromESP(url, 'after', randomNumber);
         break;
       }
       await delay(1000);
