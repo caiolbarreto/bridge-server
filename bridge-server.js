@@ -15,6 +15,22 @@ const esp32URL = 'http://192.168.131.102:8001'
 
 const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 
+function addRandomNumber(filename) {
+  let parts = filename.split('_');
+
+  let numShelfPart = parts[1];
+
+  let randomNumber = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+
+  let numShelfWithRandom = numShelfPart + '_' + randomNumber;
+
+  parts.splice(2, 0, randomNumber);
+
+  let newFilename = parts.join('_');
+
+  return newFilename;
+}
+
 // Define routes
 app.post('/send-to-esps/:clientID', async (req, res) => {
   try {
@@ -33,22 +49,17 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
 // Function to fetch image from an ESP
 async function fetchImageFromESP(state) {
   try {
-    const imageArray = [];
-
     // Loop through ESP URLs
     const requests = espCamURLs.map(url => axios.get(`${url}/${state}`)
       .then(async (response) => {
         // Extract the file name from the response headers
-        const contentDisposition = response.headers['content-disposition'];
-        const fileName = contentDisposition.split('filename=')[1].trim();
+        const fileName = await axios.get(`${url}/filename-${state}`)
+        const parsedName = addRandomNumber(fileName)
+        const form = new FormData();
+        form.append(parsedName, response.data);
 
         // Send the image to the server with the extracted file name
-        await axios.post(serverUrl, response.data, {
-          headers: {
-            'Content-Type': 'image/jpeg', // Assuming the content type is JPEG, change if different
-            'Content-Disposition': `attachment; filename="${fileName}"` // Set the file name in the request headers
-          }
-        });
+        axios.post(serverUrl, form)
       })
       .catch(error => {
         console.error(`Error sending request to ${url}:`, error);
