@@ -14,14 +14,10 @@ const esp32URL = 'http://192.168.131.100:8001'
 
 const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 
-function addRandomNumber(filename) {
+function addRandomNumber(filename, randomNumber) {
   let parts = filename.split('_');
 
-  let numShelfPart = parts[1];
-
   let randomNumber = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-
-  let numShelfWithRandom = numShelfPart + '_' + randomNumber;
 
   parts.splice(2, 0, randomNumber);
 
@@ -37,8 +33,9 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     console.log('testing here', req.params)
     await sendToESPs(req.params);
     res.status(200).send('Request forwarded to ESPs successfully.');
-    await fetchImageFromESP('before')
-    await handleOpenDoor()
+    const randomNumber = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    await fetchImageFromESP('before', randomNumber)
+    await handleOpenDoor(randomNumber)
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
     res.status(500).send('Internal server error.');
@@ -46,7 +43,7 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
 });
 
 // Function to fetch image from an ESP
-async function fetchImageFromESP(state) {
+async function fetchImageFromESP(state, randomNumber) {
   try {
     // Loop through ESP URLs
     const requests = espCamURLs.map(async url => {
@@ -58,7 +55,7 @@ async function fetchImageFromESP(state) {
 
         // Extract the file name from the response headers
         const fileNameResponse = await axios.get(`${url}/filename-${state}`);
-        const fileName = addRandomNumber(String(fileNameResponse.data));
+        const fileName = addRandomNumber(String(fileNameResponse.data), randomNumber);
 
         // Create FormData object and append image data with filename
         const form = new FormData();
@@ -72,8 +69,6 @@ async function fetchImageFromESP(state) {
           headers: {
             ...form.getHeaders() // Set proper headers for FormData
           }
-        }).then((response) => {
-          console.log('FOIIIII', response)
         }).catch((error) => {
           console.error(error)
         })
@@ -90,23 +85,23 @@ async function fetchImageFromESP(state) {
   }
 }
 
-async function handleOpenDoor() {
+async function handleOpenDoor(randomNumber) {
   try {
     const response = await axios.get(`${esp32URL}/open`)
-    await monitorDoor()
+    await monitorDoor(randomNumber)
     return response
   } catch (error) {
     console.error('Error forwarding request image from ESPs:', error);
   }
 }
 
-async function monitorDoor() {
+async function monitorDoor(randomNumber) {
   try {
     while (true) {
       const response = await axios.get(`${esp32URL}/closed`);
       if (response.data === "Porta fechada!") {
         // If the response is "Porta fechada!", call another function
-        await fetchImageFromESP('after');
+        await fetchImageFromESP('after', randomNumber);
         break; // Exit the loop
       }
       // Delay before sending the next request
