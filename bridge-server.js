@@ -42,7 +42,7 @@ app.get('/esp', async (_req, res) => {
 // Function to send request to ESPs
 async function sendToESPs(data) {
   const espURLs = [
-    'http://192.168.131.100:8001/auth'
+    `http://192.168.131.100:8001/auth?clientID=${data.clientID}`
     // Add URLs for other ESPs here
   ];
 
