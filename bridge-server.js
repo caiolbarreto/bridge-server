@@ -8,7 +8,6 @@ const PORT = process.env.PORT || 3001;
 const espCamURLs = [
   `http://192.168.131.101:8001`,
   `http://192.168.131.102:8001`,
-  `http://192.168.131.103:8001`,
 ];
 
 const esp32URL = 'http://192.168.131.100:8001'
@@ -73,7 +72,11 @@ async function fetchImageFromESP(state) {
           headers: {
             ...form.getHeaders() // Set proper headers for FormData
           }
-        });
+        }).then((response) => {
+          console.log('FOIIIII', response)
+        }).catch((error) => {
+          console.error(error)
+        })
       } catch (error) {
         console.error(`Error sending request to ${url}:`, error);
         throw error; // Re-throw the error for handling in the catch block
