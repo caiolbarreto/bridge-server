@@ -5,11 +5,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Define routes
-app.post('/send-to-esps', async (req, res) => {
+app.post('/send-to-esps/:clientID', async (req, res) => {
   try {
     // Forward the request to ESPs
-    console.log('testing here', JSON.stringify(req))
-    await sendToESPs(JSON.stringify(req.body));
+    console.log('testing here', req.params)
+    await sendToESPs(req.params);
     res.status(200).send('Request forwarded to ESPs successfully.');
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
@@ -30,7 +30,7 @@ app.get('/testing', async (_req, res) => {
 // Testing route
 app.get('/esp', async (_req, res) => {
   try {
-    const axiosResponse = await axios.get('http://192.168.1.100:8001/init');
+    const axiosResponse = await axios.get('http://192.168.131.100:8001/init');
     // Send the data property of the axios response as the response to the client
     res.status(200).json(axiosResponse.data);
   } catch (error) {
@@ -42,7 +42,7 @@ app.get('/esp', async (_req, res) => {
 // Function to send request to ESPs
 async function sendToESPs(data) {
   const espURLs = [
-    'http://192.168.1.100:8001/auth'
+    'http://192.168.131.100:8001/auth'
     // Add URLs for other ESPs here
   ];
 
