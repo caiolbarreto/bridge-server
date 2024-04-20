@@ -27,12 +27,12 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
 });
 
 // Function to fetch image from an ESP
-async function fetchImageFromESP(url) {
+async function fetchImageFromESP(state) {
   try {
     const imageArray = [];
 
     // Loop through ESP URLs
-    const requests = espCamURLs.map(url => axios.get(`${url}/before`)
+    const requests = espCamURLs.map(url => axios.get(`${url}/${state}`)
       .then((response) => {
         imageArray.push(response.data)
       })
@@ -51,10 +51,32 @@ async function fetchImageFromESP(url) {
 async function handleOpenDoor() {
   try {
     const response = await axios.get(`${esp32URL}/open`)
+    await monitorDoor()
     return response
   } catch (error) {
     console.error('Error forwarding request image from ESPs:', error);
   }
+}
+
+async function monitorDoor() {
+  try {
+    while (true) {
+      const response = await axios.get(`${esp32URL}/close`);
+      if (response.data === "Porta fechada!") {
+        // If the response is "Porta fechada!", call another function
+        await fetchImageFromESP('/after');
+        break; // Exit the loop
+      }
+      // Delay before sending the next request
+      await delay(1000); // Adjust delay time as needed
+    }
+  } catch (error) {
+    console.error('Error monitoring door status:', error);
+  }
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Function to send request to ESPs
