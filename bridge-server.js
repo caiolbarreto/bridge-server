@@ -17,8 +17,6 @@ const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 function addRandomNumber(filename, randomNumber) {
   let parts = filename.split('_');
 
-  let randomNumber = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-
   parts.splice(2, 0, randomNumber);
 
   let newFilename = parts.join('_');
