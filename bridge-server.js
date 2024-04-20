@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 app.post('/send-to-esps', async (req, res) => {
   try {
     // Forward the request to ESPs
-    console.log('testing here', req.body)
+    console.log('testing here', JSON.stringify(req))
     await sendToESPs(JSON.stringify(req.body));
     res.status(200).send('Request forwarded to ESPs successfully.');
   } catch (error) {
