@@ -19,43 +19,43 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     console.log('testing here', req.params)
     await sendToESPs(req.params);
     res.status(200).send('Request forwarded to ESPs successfully.');
-    await handleGetImages()
+    await fetchImageFromESP()
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
     res.status(500).send('Internal server error.');
   }
 });
 
-async function handleGetImages() {
+// Function to fetch image from an ESP
+async function fetchImageFromESP(url) {
   try {
-    const imageArray = []
+    const imageArray = [];
 
+    // Loop through ESP URLs
     for (const url of espCamURLs) {
+      // Set up interval for each URL
       setInterval(async () => {
-        await axios.get(`${url}/before`).then((response) => {
-          imageArray.push(response.data)
-          console.log(response.data)
-        }).catch((error) => {
-          console.error(error)
-        })
-      }, 1000)
-    }
+        const response = await axios.get(`${url}/before`);
+        if (response.data !== null) {
+          imageArray.push(response.data);
+        }
+      }, 1000);
 
-    console.log('imageArray', imageArray.length)
-    await handleOpenDoor()
+      // Execute handleOpenDoor function once for each URL
+      await handleOpenDoor();
+    }
   } catch (error) {
-    console.error('Error forwarding request image from ESPs:', error);
-    res.status(500).send('Internal server error')
+    console.error(`Error fetching image from ${url}:`, error);
+    return null; // Return null if there's an error
   }
 }
 
 async function handleOpenDoor() {
   try {
     const response = await axios.get(`${esp32URL}/open`)
-    res.status(200).send(`Opened, ${response.data}`)
+    return response
   } catch (error) {
     console.error('Error forwarding request image from ESPs:', error);
-    res.status(500).send('Internal server error')
   }
 }
 
