@@ -75,7 +75,7 @@ async function fetchImageFromESP(url, state, randomNumber) {
 async function handleOpenDoor(url, randomNumber) {
   try {
     const response = await axios.get(`${esp32URL}/open`);
-    await monitorDoor(randomNumber);
+    await monitorDoor(url, randomNumber);
     return response;
   } catch (error) {
     console.error('Error opening the door:', error);
