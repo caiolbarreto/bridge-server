@@ -36,8 +36,8 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     console.log('testing here', req.params)
     await sendToESPs(req.params);
     res.status(200).send('Request forwarded to ESPs successfully.');
-    await fetchImageFromESP()
-    await handleOpenDoor('before')
+    await fetchImageFromESP('before')
+    await handleOpenDoor()
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
     res.status(500).send('Internal server error.');
@@ -57,6 +57,8 @@ async function fetchImageFromESP(state) {
         form.append(parsedName, response.data);
 
         // Send the image to the server with the extracted file name
+        console.log('parsedName', parsedName)
+        console.log('form', form)
         axios.post(serverUrl, form)
       })
       .catch(error => {
