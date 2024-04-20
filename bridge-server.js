@@ -29,11 +29,11 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
   try {
     // Forward the request to ESPs
     console.log('testing here', req.params)
-    await sendToESPs(req.params);
+    const randomNumber = Math.floor(Math.random() * 9000000000) + 1000000000;
+    await sendToESPs(req.params, randomNumber);
     res.status(200).send('Request forwarded to ESPs successfully.');
-    const randomNumber = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     await fetchImageFromESP('before', randomNumber)
-    await handleOpenDoor(randomNumber)
+    await handleOpenDoor()
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
     res.status(500).send('Internal server error.');
@@ -41,34 +41,33 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
 });
 
 // Function to fetch image from an ESP
-async function fetchImageFromESP(state, randomNumber) {
+async function fetchImageFromESP(state) {
   try {
     // Loop through ESP URLs
     const requests = espCamURLs.map(async url => {
       try {
         // Fetch image binary data
-        const response = await axios.get(`${url}/${state}`, {
+        await axios.get(`${url}/${state}`, {
           responseType: 'arraybuffer' // Ensure binary data is correctly received
-        });
+        }).then(async (response) => {
+          // Extract the file name from the response headers
+          const fileName = await axios.get(`${url}/filename-${state}`);
 
-        // Extract the file name from the response headers
-        const fileNameResponse = await axios.get(`${url}/filename-${state}`);
-        const fileName = addRandomNumber(String(fileNameResponse.data), randomNumber);
+          // Create FormData object and append image data with filename
+          const form = new FormData();
+          form.append('file', response.data, { filename: fileName });
 
-        // Create FormData object and append image data with filename
-        const form = new FormData();
-        form.append('file', response.data, { filename: fileName });
+          // Send the image to the server with the extracted file name
+          console.log('fileName:', fileName);
+          console.log('form:', form);
 
-        // Send the image to the server with the extracted file name
-        console.log('fileName:', fileName);
-        console.log('form:', form);
-
-        await axios.post(serverUrl, form, {
-          headers: {
-            ...form.getHeaders() // Set proper headers for FormData
-          }
-        }).catch((error) => {
-          console.error(error)
+          await axios.post(serverUrl, form, {
+            headers: {
+              ...form.getHeaders() // Set proper headers for FormData
+            }
+          }).catch((error) => {
+            console.error(error)
+          })
         })
       } catch (error) {
         console.error(`Error sending request to ${url}:`, error);
@@ -83,23 +82,23 @@ async function fetchImageFromESP(state, randomNumber) {
   }
 }
 
-async function handleOpenDoor(randomNumber) {
+async function handleOpenDoor() {
   try {
     const response = await axios.get(`${esp32URL}/open`)
-    await monitorDoor(randomNumber)
+    await monitorDoor()
     return response
   } catch (error) {
     console.error('Error forwarding request image from ESPs:', error);
   }
 }
 
-async function monitorDoor(randomNumber) {
+async function monitorDoor() {
   try {
     while (true) {
       const response = await axios.get(`${esp32URL}/closed`);
       if (response.data === "Porta fechada!") {
         // If the response is "Porta fechada!", call another function
-        await fetchImageFromESP('after', randomNumber);
+        await fetchImageFromESP('after');
         break; // Exit the loop
       }
       // Delay before sending the next request
@@ -115,10 +114,10 @@ function delay(ms) {
 }
 
 // Function to send request to ESPs
-async function sendToESPs(data) {
+async function sendToESPs(data, randomNumber) {
   try {
     // Send request to each ESP asynchronously
-    const requests = espCamURLs.map(url => axios.post(`${url}/auth?clientID=${data.clientID}`)
+    const requests = espCamURLs.map(url => axios.post(`${url}/auth?clientID=${data.clientID}&orderID=${randomNumber}`)
       .catch(error => {
         console.error(`Error sending request to ${url}:`, error);
         throw error; // Re-throw the error for handling in the catch block
