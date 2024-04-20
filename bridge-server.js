@@ -23,7 +23,7 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     await sendToESPs(req.params);
     res.status(200).send('Request forwarded to ESPs successfully.');
     await fetchImageFromESP()
-    await handleOpenDoor()
+    await handleOpenDoor('before')
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
     res.status(500).send('Internal server error.');
@@ -74,10 +74,10 @@ async function handleOpenDoor() {
 async function monitorDoor() {
   try {
     while (true) {
-      const response = await axios.get(`${esp32URL}/close`);
+      const response = await axios.get(`${esp32URL}/closed`);
       if (response.data === "Porta fechada!") {
         // If the response is "Porta fechada!", call another function
-        await fetchImageFromESP('/after');
+        await fetchImageFromESP('after');
         break; // Exit the loop
       }
       // Delay before sending the next request
