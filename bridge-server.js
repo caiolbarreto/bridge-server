@@ -4,6 +4,14 @@ const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+const espCamURLs = [
+  `http://192.168.131.101:8001`,
+  `http://192.168.131.100:8002`,
+];
+
+const esp32URL = 'http://192.168.131.101:8001'
+
+
 // Define routes
 app.post('/send-to-esps/:clientID', async (req, res) => {
   try {
@@ -17,38 +25,44 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
   }
 });
 
-// Testing route
-app.get('/testing', async (_req, res) => {
-    try {
-      res.status(200).send('Server is running');
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Internal server error.');
-    }
-  });
-
-// Testing route
-app.get('/esp', async (_req, res) => {
+app.get('/before', async (_req, res) => {
   try {
-    const axiosResponse = await axios.get('http://192.168.131.100:8001/init');
-    // Send the data property of the axios response as the response to the client
-    res.status(200).json(axiosResponse.data);
+    const imageArray = []
+
+    for (const url of espCamURLs) {
+      setInterval(async () => {
+        await axios.get(url).then((response) => {
+          imageArray.push(response.data)
+          console.log(response.data)
+        }).catch((error) => {
+          console.error(error)
+        })
+      }, 1000)
+    }
+
+    console.log('imageArray', imageArray.length)
+    await handleOpenDoor()
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal server error.');
+    console.error('Error forwarding request image from ESPs:', error);
+    res.status(500).send('Internal server error')
   }
-});
+})
+
+async function handleOpenDoor() {
+  try {
+    const response = await axios.get(`${esp32URL}/open`)
+    res.status(200).send(`Opened, ${response.data}`)
+  } catch (error) {
+    console.error('Error forwarding request image from ESPs:', error);
+    res.status(500).send('Internal server error')
+  }
+}
 
 // Function to send request to ESPs
 async function sendToESPs(data) {
-  const espURLs = [
-    `http://192.168.131.100:8001/auth?clientID=${data.clientID}`
-    // Add URLs for other ESPs here
-  ];
-
   try {
     // Send request to each ESP asynchronously
-    const requests = espURLs.map(url => axios.post(url, data)
+    const requests = espCamURLs.map(url => axios.post(`${url}/auth?clientID=${data.clientID}`)
       .catch(error => {
         console.error(`Error sending request to ${url}:`, error);
         throw error; // Re-throw the error for handling in the catch block
