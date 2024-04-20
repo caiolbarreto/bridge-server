@@ -44,10 +44,8 @@ async function fetchImageFromESP(state) {
         const fileName = await axios.get(`${url}/filename-${state}`);
 
         // Create FormData object and append image data with filename
-        console.log('fileName1', String(fileName))
-        console.log('fileName2', fileName)
         const form = new FormData();
-        form.append('file', response.data, { filename: String(fileName) });
+        form.append('file', response.data, { filename: String(fileName.data) });
 
         // Send the image to the server with the extracted file name
         console.log('fileName:', fileName);
