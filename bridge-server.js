@@ -9,7 +9,7 @@ const espCamURLs = [
   `http://192.168.131.100:8002`,
 ];
 
-const esp32URL = 'http://192.168.131.101:8001'
+const esp32URL = 'http://192.168.131.102:8001'
 
 
 // Define routes
@@ -19,19 +19,20 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     console.log('testing here', req.params)
     await sendToESPs(req.params);
     res.status(200).send('Request forwarded to ESPs successfully.');
+    await handleGetImages()
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
     res.status(500).send('Internal server error.');
   }
 });
 
-app.get('/before', async (_req, res) => {
+async function handleGetImages() {
   try {
     const imageArray = []
 
     for (const url of espCamURLs) {
       setInterval(async () => {
-        await axios.get(url).then((response) => {
+        await axios.get(`${url}/before`).then((response) => {
           imageArray.push(response.data)
           console.log(response.data)
         }).catch((error) => {
@@ -46,7 +47,7 @@ app.get('/before', async (_req, res) => {
     console.error('Error forwarding request image from ESPs:', error);
     res.status(500).send('Internal server error')
   }
-})
+}
 
 async function handleOpenDoor() {
   try {
