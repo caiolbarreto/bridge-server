@@ -14,16 +14,6 @@ const esp32URL = 'http://192.168.131.100:8001'
 
 const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 
-function addRandomNumber(filename, randomNumber) {
-  let parts = filename.split('_');
-
-  parts.splice(2, 0, randomNumber);
-
-  let newFilename = parts.join('_');
-
-  return newFilename;
-}
-
 // Define routes
 app.post('/send-to-esps/:clientID', async (req, res) => {
   try {
@@ -32,7 +22,7 @@ app.post('/send-to-esps/:clientID', async (req, res) => {
     const randomNumber = Math.floor(Math.random() * 9000000000) + 1000000000;
     await sendToESPs(req.params, randomNumber);
     res.status(200).send('Request forwarded to ESPs successfully.');
-    await fetchImageFromESP('before', randomNumber)
+    await fetchImageFromESP('before')
     await handleOpenDoor()
   } catch (error) {
     console.error('Error forwarding request to ESPs:', error);
@@ -55,7 +45,7 @@ async function fetchImageFromESP(state) {
 
         // Create FormData object and append image data with filename
         const form = new FormData();
-        form.append('file', response.data, { filename: fileName });
+        form.append('file', response.data, { filename: String(fileName) });
 
         // Send the image to the server with the extracted file name
         console.log('fileName:', fileName);
