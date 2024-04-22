@@ -6,15 +6,13 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 const espCamURLs = [
-  `http://192.168.131.101:8001`,
-  `http://192.168.131.102:8001`,
-  `http://192.168.131.103:8001`,
-  `http://192.168.131.104:8001`,
-  `http://192.168.131.105:8001`,
-  `http://192.168.131.106:8001`,
+  `http://192.168.0.101:8001`,
+  `http://192.168.0.102:8001`,
+  `http://192.168.0.104:8001`,
+  `http://192.168.0.106:8001`,
 ];
 
-const esp32URL = 'http://192.168.131.100:8001'
+const esp32URL = 'http://192.168.0.99:8001'
 
 const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 
@@ -50,10 +48,6 @@ async function fetchImageFromESP(state) {
         // Create FormData object and append image data with filename
         const form = new FormData();
         form.append('file', response.data, { filename: String(fileName.data) });
-
-        // Send the image to the server with the extracted file name
-        console.log('fileName:', fileName);
-        console.log('form:', form);
 
         await axios.post(serverUrl, form, {
           headers: {
