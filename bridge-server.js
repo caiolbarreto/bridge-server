@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors');
 const FormData = require('form-data');
 
 const app = express();
@@ -121,3 +122,7 @@ async function sendToESPs(data, randomNumber) {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+app.use(cors({
+  origin: '*'
+}));
