@@ -118,11 +118,9 @@ async function sendToESPs(data, randomNumber) {
   }
 }
 
+app.use(cors());
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-app.use(cors({
-  origin: '*'
-}));
