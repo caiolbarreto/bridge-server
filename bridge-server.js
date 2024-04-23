@@ -118,7 +118,12 @@ async function sendToESPs(data, randomNumber) {
   }
 }
 
-app.use(cors());
+app.use(cors({
+  origin:[
+    'http://localhost:3000',
+    'https://delicasa-front.vercel.app'
+  ]
+}));
 
 // Start the server
 app.listen(PORT, () => {
