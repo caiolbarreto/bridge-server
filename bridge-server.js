@@ -17,6 +17,14 @@ const esp32URL = 'http://192.168.0.99:8001'
 
 const serverUrl = 'https://delicasa-server.onrender.com/files/many'
 
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://delicasa-front.vercel.app'
+  ],
+  optionsSuccessStatus: 200,
+}));
+
 // Define routes
 app.post('/send-to-esps/:clientID', async (req, res) => {
   try {
@@ -117,14 +125,6 @@ async function sendToESPs(data, randomNumber) {
     throw error; // Re-throw the error for handling in the caller function
   }
 }
-
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://delicasa-front.vercel.app'
-  ],
-  optionsSuccessStatus: 200,
-}));
 
 // Start the server
 app.listen(PORT, () => {
